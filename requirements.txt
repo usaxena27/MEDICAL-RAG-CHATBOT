@@ -1,0 +1,10 @@
+langchain==0.2.14
+langchain-core==0.2.39
+langchain-community==0.2.12
+langchain-text-splitters==0.2.1
+langchain-groq==0.1.10
+faiss-cpu==1.7.4
+pypdf==3.17.0
+flask==3.0.0
+python-dotenv==1.0.0
+requests==2.31.0

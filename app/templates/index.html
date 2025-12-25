@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>🔍 AI Medical Assistant</title>
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #020617;
+            --accent: #38bdf8;
+            --text: #e5e7eb;
+            --soft: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: linear-gradient(135deg, #020617, #0f172a);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text);
+        }
+
+        .chat-container {
+            max-width: 850px;
+            margin: auto;
+            background: var(--card);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 90vh;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #020617, #020617 60%, #0f172a);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        header p {
+            margin-top: 0.3rem;
+            font-size: 0.9rem;
+            color: var(--soft);
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top, rgba(56,189,248,0.06), transparent 60%);
+        }
+
+        .message {
+            max-width: 80%;
+            margin-bottom: 1.1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            line-height: 1.4;
+            animation: fadeIn 0.2s ease;
+            word-wrap: break-word;
+        }
+
+        .user {
+            background: linear-gradient(135deg, #1e293b, #020617);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .assistant {
+            background: rgba(255,255,255,0.04);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message strong {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+        }
+
+        form {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            gap: 0.7rem;
+            align-items: center;
+        }
+
+        textarea {
+            flex: 1;
+            height: 48px;
+            resize: none;
+            padding: 0.7rem 0.9rem;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: #020617;
+            color: white;
+            font-size: 0.95rem;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        button {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1.2rem;
+            color: #020617;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(56,189,248,0.35);
+        }
+
+        .clear-btn {
+            background: transparent;
+            color: var(--soft);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.05);
+            box-shadow: none;
+        }
+
+        .error {
+            color: #f87171;
+            padding: 0.8rem 1rem;
+            background: rgba(248,113,113,0.1);
+            border-radius: 8px;
+            margin: 1rem 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+
+        <header>
+            <h1>🔍 AI Medical Assistant</h1>
+            <p>Private • Secure • AI-Powered Medical Guidance</p>
+        </header>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <div id="chat-box">
+            {% for msg in messages %}
+                <div class="message {{ msg.role }}">
+                    <strong>{{ msg.role|capitalize }}</strong><br>
+                    {{ msg.content | safe | nl2br }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{{ url_for('index') }}">
+            <textarea name="prompt" placeholder="Ask a medical question..." required></textarea>
+            <button type="submit">Send</button>
+        </form>
+
+        <form method="get" action="{{ url_for('clear') }}">
+            <button type="submit" class="clear-btn">Clear Chat</button>
+        </form>
+
+    </div>
+</body>
+</html>
