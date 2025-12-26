@@ -229,9 +229,15 @@ git push origin main
 
 ```bash
 docker exec -u root -it jenkins-dind bash
-apt install -y
-curl -LO https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
-dpkg -i trivy_0.62.1_Linux-64bit.deb
+apt install -yapt update -y
+apt install -y ca-certificates curl gnupg lsb-release
+curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key \
+ | gpg --dearmor -o /etc/apt/keyrings/trivy.gpg
+echo "deb [signed-by=/etc/apt/keyrings/trivy.gpg] \
+https://aquasecurity.github.io/trivy-repo/deb bookworm main" \
+> /etc/apt/sources.list.d/trivy.list
+apt update
+apt install -y trivy
 trivy --version
 exit
 ```
