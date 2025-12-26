@@ -85,14 +85,50 @@ docker exec jenkins-dind cat /var/jenkins_home/secrets/initialAdminPassword
 Back in the terminal:
 
 ```bash
+# Enter Jenkins container as root
 docker exec -u root -it jenkins-dind bash
+
+# Update package list
 apt update -y
-apt install -y python3
-python3 --version
-ln -s /usr/bin/python3 /usr/bin/python
+
+# Install build dependencies
+apt install -y \
+  wget build-essential libssl-dev zlib1g-dev \
+  libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev \
+  xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev \
+  liblzma-dev libgomp1 ca-certificates curl
+
+# Download Python 3.11.9
+cd /tmp
+wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
+tar xzf Python-3.11.9.tgz
+cd Python-3.11.9
+
+# Build & install Python
+./configure --enable-optimizations
+make -j$(nproc)
+make altinstall
+
+# Set Python 3.11 as default
+ln -sf /usr/local/bin/python3.11 /usr/bin/python
+ln -sf /usr/local/bin/python3.11 /usr/bin/python3
+ln -sf /usr/local/bin/pip3.11 /usr/bin/pip
+ln -sf /usr/local/bin/pip3.11 /usr/bin/pip3
+
+# Verify
 python --version
-apt install -y python3-pip
+python3 --version
+pip --version
+
+# Cleanup build files
+cd /
+rm -rf /tmp/Python-3.11.9*
+
+# Exit container
 exit
+
+# Restart Jenkins
+docker restart jenkins-dind
 ```
 
 ### 7. Restart Jenkins Container
