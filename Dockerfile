@@ -3,7 +3,7 @@ FROM python:3.11-slim
 
 ## Essential environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 
