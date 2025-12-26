@@ -357,8 +357,6 @@ Then open **Jenkins Dashboard** again to continue.
 5. Set auto-deploy from ECR if desired
 6. Deploy the service
 
-📺 Follow the tutorial video instructions for correct setup
-
 ---
 
 ### 🧪 Run Jenkins Pipeline
@@ -370,4 +368,4 @@ If all stages succeed (Checkout → Build → Trivy Scan → Push to ECR → Dep
 
 🎉 **CI/CD Deployment to AWS App Runner is complete!**
 
-✅ Your app is now live and running on AWS 🚀
+✅ The app is now live and running on AWS 🚀
