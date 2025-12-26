@@ -14,11 +14,13 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-## Copying all contents from local to container
-COPY . .
-
 ## Install Python dependencies
-RUN pip install --no-cache-dir -e .
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app /app/app
+COPY data /app/data
+COPY vectorstore /app/vectorstore
 
 ## Expose only flask port
 EXPOSE 5000
