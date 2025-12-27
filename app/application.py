@@ -316,6 +316,119 @@ def recreate_vectorstore():
         import traceback
         return {"status": "error", "message": str(e), "trace": traceback.format_exc()}
 
+@app.route("/debug-vectorstore")
+def debug_vectorstore():
+    """Detailed vector store debugging"""
+    import sys
+    from io import StringIO
+    
+    # Capture all logs
+    log_capture = StringIO()
+    handler = logging.StreamHandler(log_capture)
+    handler.setLevel(logging.INFO)
+    
+    # Add handler temporarily
+    logger.addHandler(handler)
+    
+    result = {
+        "steps": [],
+        "final_status": None,
+        "error": None
+    }
+    
+    try:
+        result["steps"].append("Starting vector store load test...")
+        
+        from app.components.embeddings import get_embedding_model
+        from app.config.config import DB_FAISS_PATH
+        import os
+        
+        result["steps"].append(f"DB_FAISS_PATH: {DB_FAISS_PATH}")
+        result["steps"].append(f"Path exists: {os.path.exists(DB_FAISS_PATH)}")
+        
+        if os.path.exists(DB_FAISS_PATH):
+            files = os.listdir(DB_FAISS_PATH)
+            result["steps"].append(f"Files in path: {files}")
+        
+        result["steps"].append("Getting embedding model...")
+        embedding_model = get_embedding_model()
+        result["steps"].append("Embedding model loaded")
+        
+        result["steps"].append("Attempting FAISS.load_local...")
+        try:
+            from langchain_community.vectorstores import FAISS
+            vector_store = FAISS.load_local(
+                DB_FAISS_PATH,
+                embedding_model,
+                allow_dangerous_deserialization=True
+            )
+            result["steps"].append("SUCCESS: Direct load worked!")
+            result["final_status"] = "SUCCESS"
+            return result
+        except Exception as e:
+            result["steps"].append(f"Direct load failed: {type(e).__name__}: {str(e)}")
+            result["error"] = str(e)
+            
+            # Try manual load
+            result["steps"].append("Attempting manual reconstruction...")
+            try:
+                import pickle
+                import faiss as faiss_lib
+                
+                index_path = os.path.join(DB_FAISS_PATH, "index.faiss")
+                pkl_path = os.path.join(DB_FAISS_PATH, "index.pkl")
+                
+                result["steps"].append(f"index.faiss exists: {os.path.exists(index_path)}")
+                result["steps"].append(f"index.pkl exists: {os.path.exists(pkl_path)}")
+                
+                result["steps"].append("Loading FAISS index...")
+                index = faiss_lib.read_index(index_path)
+                result["steps"].append(f"FAISS index loaded - ntotal: {index.ntotal}")
+                
+                result["steps"].append("Loading pickle...")
+                with open(pkl_path, "rb") as f:
+                    data = pickle.load(f)
+                
+                result["steps"].append(f"Pickle loaded - type: {type(data).__name__}")
+                
+                if isinstance(data, tuple):
+                    result["steps"].append(f"Tuple length: {len(data)}")
+                    
+                    if len(data) >= 2:
+                        docstore, index_to_docstore_id = data[0], data[1]
+                        result["steps"].append(f"Docstore type: {type(docstore).__name__}")
+                        result["steps"].append(f"Index mapping type: {type(index_to_docstore_id).__name__}")
+                        
+                        result["steps"].append("Creating FAISS object...")
+                        vector_store = FAISS(
+                            embedding_function=embedding_model.embed_query,
+                            index=index,
+                            docstore=docstore,
+                            index_to_docstore_id=index_to_docstore_id,
+                        )
+                        result["steps"].append("SUCCESS: Manual reconstruction worked!")
+                        result["final_status"] = "SUCCESS"
+                        return result
+                    
+            except Exception as e2:
+                result["steps"].append(f"Manual load failed: {type(e2).__name__}: {str(e2)}")
+                import traceback
+                result["error_traceback"] = traceback.format_exc()
+        
+        result["final_status"] = "FAILED"
+        
+    except Exception as e:
+        result["error"] = str(e)
+        result["final_status"] = "ERROR"
+        import traceback
+        result["error_traceback"] = traceback.format_exc()
+    finally:
+        # Remove handler
+        logger.removeHandler(handler)
+        result["logs"] = log_capture.getvalue()
+    
+    return result
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if "messages" not in session:
