@@ -16,9 +16,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-## Install Python dependencies
-COPY requirements.txt .
+## Copying all contents from local to container
+COPY . .
+
+## Install Python dependencies from requirements.txt FIRST
 RUN pip install --no-cache-dir -r requirements.txt
+
+## Then install the package
+RUN pip install --no-cache-dir -e .
 
 COPY app /app/app
 COPY data /app/data

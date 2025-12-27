@@ -4,6 +4,7 @@ langchain-community==0.2.12
 langchain-text-splitters==0.2.1
 langchain-groq==0.1.10
 faiss-cpu==1.7.4
+sentence-transformers
 pypdf==3.17.0
 flask==3.0.0
 python-dotenv==1.0.0
