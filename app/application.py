@@ -246,32 +246,50 @@ def health():
 
 @app.route("/test-components")
 def test_components():
-    """Test each component"""
+    """Test each component with detailed error info"""
     results = {}
     
+    # Test Vector Store
     try:
+        logger.info("Testing vector store...")
         from app.components.vector_store import load_vector_store
         db = load_vector_store()
-        results['vector_store'] = 'LOADED' if db else 'FAILED'
+        if db:
+            results['vector_store'] = 'LOADED'
+            # Try to get some info about the vector store
+            try:
+                results['vector_store_details'] = {
+                    'index_size': db.index.ntotal if hasattr(db, 'index') else 'unknown'
+                }
+            except:
+                pass
+        else:
+            results['vector_store'] = 'FAILED - returned None'
     except Exception as e:
         results['vector_store'] = f'ERROR: {str(e)}'
         import traceback
-        results['vector_store_trace'] = traceback.format_exc()
+        results['vector_store_traceback'] = traceback.format_exc()
     
+    # Test LLM
     try:
+        logger.info("Testing LLM...")
         from app.components.llm import load_llm
         llm = load_llm()
-        results['llm'] = 'LOADED' if llm else 'FAILED'
+        results['llm'] = 'LOADED' if llm else 'FAILED - returned None'
     except Exception as e:
         results['llm'] = f'ERROR: {str(e)}'
+        import traceback
+        results['llm_traceback'] = traceback.format_exc()
     
+    # Test QA Chain
     try:
+        logger.info("Testing QA chain...")
         qa_chain = create_qa_chain()
-        results['qa_chain'] = 'LOADED' if qa_chain else 'FAILED'
+        results['qa_chain'] = 'LOADED' if qa_chain else 'FAILED - returned None'
     except Exception as e:
         results['qa_chain'] = f'ERROR: {str(e)}'
         import traceback
-        results['qa_chain_trace'] = traceback.format_exc()
+        results['qa_chain_traceback'] = traceback.format_exc()
     
     return results
 
